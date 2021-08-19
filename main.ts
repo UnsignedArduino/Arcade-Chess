@@ -62,6 +62,7 @@ function place_pieces () {
             tiles.placeOnTile(sprite_piece, location)
             sprite_piece.z = 5
             sprites.setDataString(sprite_piece, "type", chess_names[index])
+            sprites.setDataBoolean(sprite_piece, "is_white", chess_names[index].includes("white"))
         }
     }
 }
