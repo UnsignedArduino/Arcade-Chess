@@ -23,43 +23,91 @@ function set_tilemap (with_tile_pieces: boolean) {
     }
 }
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (in_game) {
-        unselect_piece()
-    }
-})
-controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (in_game) {
-        if (is_sprite(sprite_selected)) {
-            if (on_available_tile()) {
-                if (grid.getSprites(tiles.locationOfSprite(sprite_cursor_pointer)).length > 0) {
-                    grid.getSprites(tiles.locationOfSprite(sprite_cursor_pointer))[0].destroy()
-                }
-                grid.place(sprite_selected, tiles.locationOfSprite(sprite_cursor_pointer))
-                sprites.setDataBoolean(sprite_selected, "has_moved", true)
-                unselect_piece()
-                if (is_sprite(sprite_move_count)) {
-                    sprite_move_count.destroy()
-                }
-            } else {
-                scene.cameraShake(4, 200)
-            }
-        } else {
-            if (is_sprite(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))) {
-                select_piece(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))
-                if (is_sprite(sprite_move_count)) {
-                    sprite_move_count.destroy()
-                }
-                if (available_moves.length == 0) {
-                    sprite_move_count = textsprite.create("Moves found: 0", 0, 2)
-                } else {
-                    sprite_move_count = textsprite.create("Moves found: " + available_moves.length, 0, 15)
-                }
-                sprite_move_count.left = 2 * tiles.tileWidth()
-                sprite_move_count.top = 11.5 * tiles.tileWidth()
+    if (controls_enabled) {
+        if (in_game) {
+            unselect_piece()
+            if (is_sprite(sprite_move_count)) {
+                sprite_move_count.destroy()
             }
         }
     }
 })
+controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (controls_enabled) {
+        if (in_game) {
+            if (is_sprite(sprite_selected)) {
+                if (on_available_tile()) {
+                    if (grid.getSprites(tiles.locationOfSprite(sprite_cursor_pointer)).length > 0) {
+                        grid.getSprites(tiles.locationOfSprite(sprite_cursor_pointer))[0].destroy()
+                    }
+                    grid.place(sprite_selected, tiles.locationOfSprite(sprite_cursor_pointer))
+                    sprites.setDataBoolean(sprite_selected, "has_moved", true)
+                    if (sprites.readDataString(sprite_selected, "type").includes("pawn")) {
+                        if (sprites.readDataBoolean(sprite_selected, "is_white")) {
+                            if (tiles.locationXY(tiles.locationOfSprite(sprite_selected), tiles.XY.row) == 2) {
+                                promote_piece(sprite_selected)
+                            }
+                        } else {
+                            if (tiles.locationXY(tiles.locationOfSprite(sprite_selected), tiles.XY.row) == 9) {
+                                promote_piece(sprite_selected)
+                            }
+                        }
+                    }
+                    unselect_piece()
+                    if (is_sprite(sprite_move_count)) {
+                        sprite_move_count.destroy()
+                    }
+                } else {
+                    scene.cameraShake(4, 200)
+                }
+            } else {
+                if (is_sprite(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))) {
+                    select_piece(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))
+                    if (is_sprite(sprite_move_count)) {
+                        sprite_move_count.destroy()
+                    }
+                    if (available_moves.length == 0) {
+                        sprite_move_count = textsprite.create("Moves found: 0", 0, 2)
+                    } else {
+                        sprite_move_count = textsprite.create("Moves found: " + available_moves.length, 0, 15)
+                    }
+                    sprite_move_count.left = 2 * tiles.tileWidth()
+                    sprite_move_count.top = 11.5 * tiles.tileWidth()
+                }
+            }
+        }
+    }
+})
+function promote_piece (piece: Sprite) {
+    enable_controls(false)
+    story.showPlayerChoices("Rook", "Knight", "Bishop", "Queen")
+    if (sprites.readDataBoolean(piece, "is_white")) {
+        if (story.checkLastAnswer("Rook")) {
+            make_piece("white rook", [tiles.locationOfSprite(piece)])
+        } else if (story.checkLastAnswer("Knight")) {
+            make_piece("white knight", [tiles.locationOfSprite(piece)])
+        } else if (story.checkLastAnswer("Bishop")) {
+            make_piece("white bishop", [tiles.locationOfSprite(piece)])
+        } else if (story.checkLastAnswer("Queen")) {
+            make_piece("white queen", [tiles.locationOfSprite(piece)])
+        }
+    } else {
+        if (story.checkLastAnswer("Rook")) {
+            make_piece("black rook", [tiles.locationOfSprite(piece)])
+        } else if (story.checkLastAnswer("Knight")) {
+            make_piece("black knight", [tiles.locationOfSprite(piece)])
+        } else if (story.checkLastAnswer("Bishop")) {
+            make_piece("black bishop", [tiles.locationOfSprite(piece)])
+        } else if (story.checkLastAnswer("Queen")) {
+            make_piece("black queen", [tiles.locationOfSprite(piece)])
+        }
+    }
+    piece.destroy()
+    sprite_selected = sprite_piece
+    timer.after(20, function () {
+        enable_controls(true)
+    })
+}
 function location_within_board (location_in_list: any[]) {
     if (tiles.locationXY(location_in_list[0], tiles.XY.column) > 9 || tiles.locationXY(location_in_list[0], tiles.XY.column) < 2) {
         return false
@@ -115,13 +163,7 @@ function place_pieces () {
     ]
     for (let index = 0; index <= chess_tiles.length - 1; index++) {
         for (let location of tiles.getTilesByType(chess_tiles[index])) {
-            sprite_piece = sprites.create(chess_images[index], SpriteKind.Piece)
-            grid.place(sprite_piece, location)
-            sprite_piece.z = 5
-            sprites.setDataString(sprite_piece, "type", chess_names[index])
-            sprites.setDataBoolean(sprite_piece, "is_white", chess_names[index].includes("white"))
-            sprites.setDataBoolean(sprite_piece, "has_moved", false)
-            sprites.setDataBoolean(sprite_piece, "in_check", false)
+            make_piece(chess_names[index], [location])
         }
     }
 }
@@ -211,7 +253,7 @@ function calculate_move (piece: Sprite) {
 }
 function select_piece (sprite: Sprite) {
     sprite_selected = sprite
-    available_moves = calculate_move_for_pawn(sprite_selected)
+    available_moves = calculate_move(sprite_selected)
     for (let location of available_moves) {
         if (tiles.tileAtLocationEquals(location, assets.tile`white_tile`)) {
             tiles.setTileAt(location, assets.tile`green_white_tile`)
@@ -235,6 +277,16 @@ function unselect_piece () {
     sprite_selected = null
     set_tilemap(false)
 }
+function make_piece (_type: string, location_as_list: any[]) {
+    sprite_piece = sprites.create(chess_images[chess_names.indexOf(_type)], SpriteKind.Piece)
+    grid.place(sprite_piece, location_as_list[0])
+    sprite_piece.z = 5
+    sprites.setDataString(sprite_piece, "type", _type)
+    sprites.setDataBoolean(sprite_piece, "is_white", _type.includes("white"))
+    sprites.setDataBoolean(sprite_piece, "has_moved", false)
+    sprites.setDataBoolean(sprite_piece, "in_check", false)
+    return sprite_piece
+}
 function is_sprite (sprite: Sprite) {
     sprite = sprite
     return sprite && !(spriteutils.isDestroyed(sprite))
@@ -243,13 +295,13 @@ let sprite: Sprite = null
 let local_curr_pos: tiles.Location = null
 let local_moves: tiles.Location[] = []
 let sprite_cursor: Sprite = null
-let sprite_piece: Sprite = null
 let chess_names: string[] = []
 let chess_images: Image[] = []
 let chess_tiles: Image[] = []
+let sprite_piece: Sprite = null
 let available_moves: tiles.Location[] = []
-let sprite_move_count: TextSprite = null
 let sprite_cursor_pointer: Sprite = null
+let sprite_move_count: TextSprite = null
 let sprite_selected: Sprite = null
 let controls_enabled = false
 let in_game = false
@@ -263,4 +315,11 @@ in_game = true
 game.onUpdate(function () {
     sprite_cursor.top = sprite_cursor_pointer.top + 1
     sprite_cursor.left = sprite_cursor_pointer.left + 1
+})
+game.onUpdateInterval(100, function () {
+    if (false) {
+        if (is_sprite(sprite_selected)) {
+            sprite_selected.say("me", 100)
+        }
+    }
 })
