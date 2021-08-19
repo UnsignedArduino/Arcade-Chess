@@ -1,0 +1,67 @@
+{
+    "image1": {
+        "data": "hwQIAAgAAAAAAAAAAAAAAAAPDw/w//8P8P//DwAPDw8AAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "black_pawn"
+    },
+    "image2": {
+        "data": "hwQIAAgAAAAAAAAA8P8ADwDw/w/w//8P8P//DwDw/w/w/wAPAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "black_rook"
+    },
+    "image3": {
+        "data": "hwQIAAgAAAAAAAAAAA8ADwD/8A/w//8P8P//D/D//w8A8A8AAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "black_knight"
+    },
+    "image4": {
+        "data": "hwQIAAgAAAAAAAAAAAAADwD//w/w//8P8A/wDwAP/w8AAAAPAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "black_bishop"
+    },
+    "image5": {
+        "data": "hwQIAAgAAAAAAAAAAPAADwAPDw8P8PAPD/DwDwAPDw8A8AAPAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "black_king"
+    },
+    "image6": {
+        "data": "hwQIAAgAAAAAAAAAAP8PDwAA8A/w8P8P8PD/DwAA8A8A/w8PAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "black_queen"
+    },
+    "image7": {
+        "data": "hwQIAAgAAAAAAAAAAAAAAAABAQEQEREBEBERAQABAQEAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "white_pawn"
+    },
+    "image8": {
+        "data": "hwQIAAgAAAAAAAAAEBEBAQAQEQEQEREBEBERAQAQEQEQEQEBAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "white_rook"
+    },
+    "image9": {
+        "data": "hwQIAAgAAAAAAAAAAAEAAQAREAEQEREBEBERARAREQEAEAEAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "white_knight"
+    },
+    "image10": {
+        "data": "hwQIAAgAAAAAAAAAAAAAAQAREQEQEREBEAEQAQABEQEAAAABAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "white_bishop"
+    },
+    "image11": {
+        "data": "hwQIAAgAAAAAAAAAABAAAQABAQEBEBABARAQAQABAQEAEAABAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "white_king"
+    },
+    "image12": {
+        "data": "hwQIAAgAAAAAAAAAABEBAQAAEAEQEBEBEBARAQAAEAEAEQEBAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "white_queen"
+    },
+    "*": {
+        "mimeType": "image/x-mkcd-f4",
+        "dataEncoding": "base64",
+        "namespace": "myImages"
+    }
+}
