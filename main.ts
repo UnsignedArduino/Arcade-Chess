@@ -60,6 +60,7 @@ function place_pieces () {
         for (let location of tiles.getTilesByType(chess_tiles[index])) {
             sprite_piece = sprites.create(chess_images[index], SpriteKind.Piece)
             tiles.placeOnTile(sprite_piece, location)
+            sprite_piece.z = 5
             sprites.setDataString(sprite_piece, "type", chess_names[index])
         }
     }
@@ -87,6 +88,8 @@ function make_cursor () {
     sprite_cursor_pointer = sprites.create(img`
         f 
         `, SpriteKind.Player)
+    sprite_cursor.z = 10
+    sprite_cursor_pointer.z = 10
 }
 function enable_controls (enable: boolean) {
     controls_enabled = enable
