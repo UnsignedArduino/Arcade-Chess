@@ -1,6 +1,19 @@
 namespace SpriteKind {
     export const Piece = SpriteKind.create()
 }
+function knight_can_move_there (piece: Sprite, col_change: number, row_change: number) {
+    if (grid.getSprites(grid.add(tiles.locationOfSprite(piece), col_change, row_change)).length == 0) {
+        if (location_within_board([grid.add(tiles.locationOfSprite(piece), col_change, row_change)])) {
+            return true
+        }
+    }
+    if (sprites.readDataBoolean(grid.getSprites(grid.add(tiles.locationOfSprite(piece), col_change, row_change))[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
+        if (location_within_board([grid.add(tiles.locationOfSprite(piece), col_change, row_change)])) {
+            return true
+        }
+    }
+    return false
+}
 function set_variables () {
     controls_enabled = true
     sprite_selected = null
@@ -32,6 +45,25 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
         }
     }
 })
+function calculate_move_for_knight (piece: Sprite) {
+    local_moves = []
+    local_curr_pos = tiles.locationOfSprite(piece)
+    for (let location of [
+    tiles.getTileLocation(1, -2),
+    tiles.getTileLocation(2, -1),
+    tiles.getTileLocation(2, 1),
+    tiles.getTileLocation(1, 2),
+    tiles.getTileLocation(-1, 2),
+    tiles.getTileLocation(-2, 1),
+    tiles.getTileLocation(-2, -1),
+    tiles.getTileLocation(-1, -2)
+    ]) {
+        if (knight_can_move_there(piece, tiles.locationXY(location, tiles.XY.column), tiles.locationXY(location, tiles.XY.row))) {
+            local_moves.push(grid.add(tiles.locationOfSprite(piece), tiles.locationXY(location, tiles.XY.column), tiles.locationXY(location, tiles.XY.row)))
+        }
+    }
+    return local_moves
+}
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (controls_enabled) {
         if (in_game) {
@@ -249,6 +281,8 @@ function calculate_move (piece: Sprite) {
         return calculate_move_for_pawn(piece)
     } else if (sprites.readDataString(piece, "type").includes("rook")) {
         return calculate_move_for_rook(piece)
+    } else if (sprites.readDataString(piece, "type").includes("knight")) {
+        return calculate_move_for_knight(piece)
     } else {
         return []
     }
@@ -319,8 +353,6 @@ function is_sprite (sprite: Sprite) {
     return sprite && !(spriteutils.isDestroyed(sprite))
 }
 let sprite: Sprite = null
-let local_curr_pos: tiles.Location = null
-let local_moves: tiles.Location[] = []
 let sprite_cursor: Sprite = null
 let chess_names: string[] = []
 let chess_images: Image[] = []
@@ -328,6 +360,8 @@ let chess_tiles: Image[] = []
 let sprite_piece: Sprite = null
 let available_moves: tiles.Location[] = []
 let sprite_cursor_pointer: Sprite = null
+let local_curr_pos: tiles.Location = null
+let local_moves: tiles.Location[] = []
 let sprite_move_count: TextSprite = null
 let sprite_selected: Sprite = null
 let controls_enabled = false
