@@ -135,6 +135,12 @@ namespace myImages {
 . 1 1 1 1 1 1 . 
 . . . . . . . . 
 `;
+            case "image13":
+            case "cursor_overlapper":return img`
+3 3 3 
+3 3 3 
+3 3 3 
+`;
         }
         return null;
     })

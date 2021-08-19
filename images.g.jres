@@ -59,6 +59,11 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "white_queen"
     },
+    "image13": {
+        "data": "hwQDAAMAAAAzAwAAMwMAADMDAAA=",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "cursor_overlapper"
+    },
     "*": {
         "mimeType": "image/x-mkcd-f4",
         "dataEncoding": "base64",

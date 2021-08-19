@@ -132,11 +132,10 @@ function make_cursor () {
         . . . . . . f . . . 
         `, SpriteKind.Player)
     sprite_cursor.setFlag(SpriteFlag.Ghost, true)
-    sprite_cursor_pointer = sprites.create(img`
-        f 
-        `, SpriteKind.Player)
+    sprite_cursor_pointer = sprites.create(assets.image`cursor_overlapper`, SpriteKind.Player)
     sprite_cursor.z = 10
     sprite_cursor_pointer.z = 10
+    sprite_cursor_pointer.setFlag(SpriteFlag.Invisible, true)
 }
 function calculate_move_for_pawn (piece: Sprite) {
     local_moves = []
@@ -249,8 +248,8 @@ place_pieces()
 set_tilemap(false)
 in_game = true
 game.onUpdate(function () {
-    sprite_cursor.top = sprite_cursor_pointer.top
-    sprite_cursor.left = sprite_cursor_pointer.left
+    sprite_cursor.top = sprite_cursor_pointer.top + 1
+    sprite_cursor.left = sprite_cursor_pointer.left + 1
 })
 game.onUpdateInterval(100, function () {
     if (is_sprite(sprite_selected)) {
