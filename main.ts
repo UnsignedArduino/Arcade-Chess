@@ -227,6 +227,7 @@ function is_sprite (sprite: Sprite) {
     sprite = sprite
     return sprite && !(spriteutils.isDestroyed(sprite))
 }
+let sprite_move_count: TextSprite = null
 let sprite: Sprite = null
 let available_moves: tiles.Location[] = []
 let local_curr_pos: tiles.Location = null
@@ -250,4 +251,22 @@ in_game = true
 game.onUpdate(function () {
     sprite_cursor.top = sprite_cursor_pointer.top
     sprite_cursor.left = sprite_cursor_pointer.left
+})
+game.onUpdateInterval(100, function () {
+    if (is_sprite(sprite_selected)) {
+        if (is_sprite(sprite_move_count)) {
+            sprite_move_count.destroy()
+        }
+        if (available_moves.length == 0) {
+            sprite_move_count = textsprite.create("Moves found: 0", 0, 2)
+        } else {
+            sprite_move_count = textsprite.create("Moves found: " + available_moves.length, 0, 15)
+        }
+        sprite_move_count.left = 2 * tiles.tileWidth()
+        sprite_move_count.top = 11.5 * tiles.tileWidth()
+    } else {
+        if (is_sprite(sprite_move_count)) {
+            sprite_move_count.destroy()
+        }
+    }
 })
