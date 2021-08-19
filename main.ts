@@ -30,7 +30,16 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (in_game) {
         if (is_sprite(sprite_selected)) {
-        	
+            if (on_available_tile()) {
+                if (grid.getSprites(tiles.locationOfSprite(sprite_cursor_pointer)).length > 0) {
+                    grid.getSprites(tiles.locationOfSprite(sprite_cursor_pointer))[0].destroy()
+                }
+                grid.place(sprite_selected, tiles.locationOfSprite(sprite_cursor_pointer))
+                sprites.setDataBoolean(sprite_selected, "has_moved", true)
+                unselect_piece()
+            } else {
+                scene.cameraShake(4, 200)
+            }
         } else {
             if (is_sprite(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))) {
                 select_piece(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))
@@ -38,6 +47,15 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         }
     }
 })
+function location_within_board (location_in_list: any[]) {
+    if (tiles.locationXY(location_in_list[0], tiles.XY.column) > 9 || tiles.locationXY(location_in_list[0], tiles.XY.column) < 2) {
+        return false
+    }
+    if (tiles.locationXY(location_in_list[0], tiles.XY.row) > 9 || tiles.locationXY(location_in_list[0], tiles.XY.row) < 2) {
+        return false
+    }
+    return true
+}
 function place_pieces () {
     tiles.destroySpritesOfKind(SpriteKind.Piece)
     chess_tiles = [
@@ -85,10 +103,12 @@ function place_pieces () {
     for (let index = 0; index <= chess_tiles.length - 1; index++) {
         for (let location of tiles.getTilesByType(chess_tiles[index])) {
             sprite_piece = sprites.create(chess_images[index], SpriteKind.Piece)
-            tiles.placeOnTile(sprite_piece, location)
+            grid.place(sprite_piece, location)
             sprite_piece.z = 5
             sprites.setDataString(sprite_piece, "type", chess_names[index])
             sprites.setDataBoolean(sprite_piece, "is_white", chess_names[index].includes("white"))
+            sprites.setDataBoolean(sprite_piece, "has_moved", false)
+            sprites.setDataBoolean(sprite_piece, "in_check", false)
         }
     }
 }
@@ -118,16 +138,86 @@ function make_cursor () {
     sprite_cursor.z = 10
     sprite_cursor_pointer.z = 10
 }
+function calculate_move_for_pawn (piece: Sprite) {
+    local_moves = []
+    local_curr_pos = tiles.locationOfSprite(piece)
+    if (sprites.readDataBoolean(piece, "is_white")) {
+        if (location_within_board([tiles.locationInDirection(local_curr_pos, CollisionDirection.Top)])) {
+            if (grid.getSprites(tiles.locationInDirection(local_curr_pos, CollisionDirection.Top)).length == 0) {
+                local_moves.push(tiles.locationInDirection(local_curr_pos, CollisionDirection.Top))
+                if (location_within_board([tiles.locationInDirection(tiles.locationInDirection(local_curr_pos, CollisionDirection.Top), CollisionDirection.Top)])) {
+                    if (grid.getSprites(tiles.locationInDirection(tiles.locationInDirection(local_curr_pos, CollisionDirection.Top), CollisionDirection.Top)).length == 0 && !(sprites.readDataBoolean(piece, "has_moved"))) {
+                        local_moves.push(tiles.locationInDirection(tiles.locationInDirection(local_curr_pos, CollisionDirection.Top), CollisionDirection.Top))
+                    }
+                }
+            }
+            local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(piece), CollisionDirection.Top), CollisionDirection.Left)
+            if (location_within_board([local_curr_pos])) {
+                if (grid.getSprites(local_curr_pos).length > 0 && !(sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white"))) {
+                    local_moves.push(local_curr_pos)
+                }
+            }
+            local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(piece), CollisionDirection.Top), CollisionDirection.Right)
+            if (location_within_board([local_curr_pos])) {
+                if (grid.getSprites(local_curr_pos).length > 0 && !(sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white"))) {
+                    local_moves.push(local_curr_pos)
+                }
+            }
+        }
+    } else {
+        if (location_within_board([tiles.locationInDirection(local_curr_pos, CollisionDirection.Bottom)])) {
+            if (grid.getSprites(tiles.locationInDirection(local_curr_pos, CollisionDirection.Bottom)).length == 0) {
+                local_moves.push(tiles.locationInDirection(local_curr_pos, CollisionDirection.Bottom))
+                if (location_within_board([tiles.locationInDirection(tiles.locationInDirection(local_curr_pos, CollisionDirection.Bottom), CollisionDirection.Bottom)])) {
+                    if (grid.getSprites(tiles.locationInDirection(tiles.locationInDirection(local_curr_pos, CollisionDirection.Bottom), CollisionDirection.Bottom)).length == 0 && !(sprites.readDataBoolean(piece, "has_moved"))) {
+                        local_moves.push(tiles.locationInDirection(tiles.locationInDirection(local_curr_pos, CollisionDirection.Bottom), CollisionDirection.Bottom))
+                    }
+                }
+            }
+            local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(piece), CollisionDirection.Bottom), CollisionDirection.Left)
+            if (location_within_board([local_curr_pos])) {
+                if (grid.getSprites(local_curr_pos).length > 0 && sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white")) {
+                    local_moves.push(local_curr_pos)
+                }
+            }
+            local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(piece), CollisionDirection.Bottom), CollisionDirection.Right)
+            if (location_within_board([local_curr_pos])) {
+                if (grid.getSprites(local_curr_pos).length > 0 && sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white")) {
+                    local_moves.push(local_curr_pos)
+                }
+            }
+        }
+    }
+    return local_moves
+}
+function calculate_move (piece: Sprite) {
+    if (sprites.readDataString(piece, "type").includes("pawn")) {
+        return calculate_move_for_pawn(piece)
+    } else {
+        return []
+    }
+}
 function select_piece (sprite: Sprite) {
     sprite_selected = sprite
+    available_moves = calculate_move_for_pawn(sprite_selected)
+    for (let location of available_moves) {
+        if (tiles.tileAtLocationEquals(location, assets.tile`white_tile`)) {
+            tiles.setTileAt(location, assets.tile`green_white_tile`)
+        } else {
+            tiles.setTileAt(location, assets.tile`green_black_tile`)
+        }
+    }
 }
 function enable_controls (enable: boolean) {
     controls_enabled = enable
     if (enable) {
-        controller.moveSprite(sprite_cursor_pointer, 75, 75)
+        controller.moveSprite(sprite_cursor_pointer, 50, 50)
     } else {
         controller.moveSprite(sprite_cursor_pointer, 0, 0)
     }
+}
+function on_available_tile () {
+    return sprite_cursor_pointer.tileKindAt(TileDirection.Center, assets.tile`green_white_tile`) || sprite_cursor_pointer.tileKindAt(TileDirection.Center, assets.tile`green_black_tile`)
 }
 function unselect_piece () {
     sprite_selected = null
@@ -138,6 +228,9 @@ function is_sprite (sprite: Sprite) {
     return sprite && !(spriteutils.isDestroyed(sprite))
 }
 let sprite: Sprite = null
+let available_moves: tiles.Location[] = []
+let local_curr_pos: tiles.Location = null
+let local_moves: tiles.Location[] = []
 let sprite_cursor: Sprite = null
 let sprite_piece: Sprite = null
 let chess_names: string[] = []

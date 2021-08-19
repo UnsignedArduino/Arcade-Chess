@@ -6,7 +6,8 @@
         "small-tilemaps": "github:riknoll/small-tilemaps#v0.0.1",
         "tilemaps": "github:microsoft/pxt-tilemaps#v1.11.0",
         "arcade-sprite-data": "github:microsoft/arcade-sprite-data#v0.1.0",
-        "arcade-sprite-util": "github:jwunderl/arcade-sprite-util#v0.2.2"
+        "arcade-sprite-util": "github:jwunderl/arcade-sprite-util#v0.2.2",
+        "Sprite Grid": "github:microsoft/arcade-grid#v1.3.0"
     },
     "files": [
         "main.blocks",
