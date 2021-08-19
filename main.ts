@@ -247,9 +247,36 @@ function calculate_move_for_pawn (piece: Sprite) {
 function calculate_move (piece: Sprite) {
     if (sprites.readDataString(piece, "type").includes("pawn")) {
         return calculate_move_for_pawn(piece)
+    } else if (sprites.readDataString(piece, "type").includes("rook")) {
+        return calculate_move_for_rook(piece)
     } else {
         return []
     }
+}
+function calculate_move_for_rook (piece: Sprite) {
+    local_moves = []
+    for (let local_direction of [
+    CollisionDirection.Left,
+    CollisionDirection.Top,
+    CollisionDirection.Right,
+    CollisionDirection.Bottom
+    ]) {
+        local_curr_pos = tiles.locationOfSprite(piece)
+        for (let index = 0; index < 8; index++) {
+            local_curr_pos = tiles.locationInDirection(local_curr_pos, local_direction)
+            if (!(location_within_board([local_curr_pos]))) {
+                break;
+            } else if (grid.getSprites(local_curr_pos).length == 0) {
+                local_moves.push(local_curr_pos)
+            } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
+                local_moves.push(local_curr_pos)
+                break;
+            } else {
+                break;
+            }
+        }
+    }
+    return local_moves
 }
 function select_piece (sprite: Sprite) {
     sprite_selected = sprite
