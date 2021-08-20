@@ -291,6 +291,8 @@ function calculate_move (piece: Sprite) {
         return calculate_move_for_knight(piece)
     } else if (sprites.readDataString(piece, "type").includes("bishop")) {
         return calculate_move_for_bishop(piece)
+    } else if (sprites.readDataString(piece, "type").includes("queen")) {
+        return calculate_move_for_queen(piece)
     } else {
         return []
     }
@@ -340,6 +342,43 @@ function on_available_tile () {
 function unselect_piece () {
     sprite_selected = null
     set_tilemap(false)
+}
+function calculate_move_for_queen (piece: Sprite) {
+    local_moves = []
+    for (let index = 0; index <= all_directions.length - 1; index++) {
+        local_curr_pos = tiles.locationOfSprite(piece)
+        for (let index2 = 0; index2 < 8; index2++) {
+            local_curr_pos = tiles.locationInDirection(local_curr_pos, all_directions[index])
+            if (!(location_within_board([local_curr_pos]))) {
+                break;
+            } else if (grid.getSprites(local_curr_pos).length == 0) {
+                local_moves.push(local_curr_pos)
+            } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
+                local_moves.push(local_curr_pos)
+                break;
+            } else {
+                break;
+            }
+        }
+    }
+    for (let index = 0; index <= all_directions.length - 1; index++) {
+        local_curr_pos = tiles.locationOfSprite(piece)
+        for (let index2 = 0; index2 < 8; index2++) {
+            local_curr_pos = tiles.locationInDirection(local_curr_pos, all_directions[index])
+            local_curr_pos = tiles.locationInDirection(local_curr_pos, all_directions[(index + 1) % all_directions.length])
+            if (!(location_within_board([local_curr_pos]))) {
+                break;
+            } else if (grid.getSprites(local_curr_pos).length == 0) {
+                local_moves.push(local_curr_pos)
+            } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
+                local_moves.push(local_curr_pos)
+                break;
+            } else {
+                break;
+            }
+        }
+    }
+    return local_moves
 }
 function make_piece (_type: string, location_as_list: any[]) {
     sprite_piece = sprites.create(chess_images[chess_names.indexOf(_type)], SpriteKind.Piece)
