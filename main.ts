@@ -33,6 +33,15 @@ function get_overlapping_sprite (target: Sprite, kind: number) {
     }
     return [][0]
 }
+function locations_are_equal (location1_in_list: any[], location2_in_list: any[]) {
+    if (tiles.locationXY(location1_in_list[0], tiles.XY.column) != tiles.locationXY(location2_in_list[0], tiles.XY.column)) {
+        return false
+    }
+    if (tiles.locationXY(location1_in_list[0], tiles.XY.row) != tiles.locationXY(location2_in_list[0], tiles.XY.row)) {
+        return false
+    }
+    return true
+}
 function set_tilemap (with_tile_pieces: boolean) {
     scene.setBackgroundColor(13)
     if (with_tile_pieces) {
@@ -319,6 +328,48 @@ function calculate_move_for_rook (piece: Sprite) {
     }
     return local_moves
 }
+function get_all_attacked_positions (white: boolean) {
+    local_attacked_positions = []
+    for (let sprite_piece of sprites.allOfKind(SpriteKind.Piece)) {
+        if (sprites.readDataBoolean(sprite_piece, "is_white") != white) {
+            continue;
+        }
+        if (sprites.readDataString(sprite_piece, "type").includes("pawn")) {
+            if (sprites.readDataBoolean(sprite_piece, "is_white")) {
+                local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Top), CollisionDirection.Left)
+                if (location_within_board([local_curr_pos])) {
+                    if (grid.getSprites(local_curr_pos).length > 0 && !(sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white"))) {
+                        local_attacked_positions.push(local_curr_pos)
+                    }
+                }
+                local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Top), CollisionDirection.Right)
+                if (location_within_board([local_curr_pos])) {
+                    if (grid.getSprites(local_curr_pos).length > 0 && !(sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white"))) {
+                        local_attacked_positions.push(local_curr_pos)
+                    }
+                }
+            } else {
+                local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Bottom), CollisionDirection.Left)
+                if (location_within_board([local_curr_pos])) {
+                    if (grid.getSprites(local_curr_pos).length > 0 && sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white")) {
+                        local_attacked_positions.push(local_curr_pos)
+                    }
+                }
+                local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Bottom), CollisionDirection.Right)
+                if (location_within_board([local_curr_pos])) {
+                    if (grid.getSprites(local_curr_pos).length > 0 && sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white")) {
+                        local_attacked_positions.push(local_curr_pos)
+                    }
+                }
+            }
+        } else {
+            for (let location of calculate_move(sprite_piece)) {
+                local_attacked_positions.push(location)
+            }
+        }
+    }
+    return local_attacked_positions
+}
 function select_piece (sprite: Sprite) {
     sprite_selected = sprite
     available_moves = calculate_move(sprite_selected)
@@ -443,6 +494,7 @@ function calculate_move_for_bishop (piece: Sprite) {
     return local_moves
 }
 let sprite: Sprite = null
+let local_attacked_positions: tiles.Location[] = []
 let sprite_cursor: Sprite = null
 let chess_names: string[] = []
 let chess_images: Image[] = []
