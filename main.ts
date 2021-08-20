@@ -293,6 +293,8 @@ function calculate_move (piece: Sprite) {
         return calculate_move_for_bishop(piece)
     } else if (sprites.readDataString(piece, "type").includes("queen")) {
         return calculate_move_for_queen(piece)
+    } else if (sprites.readDataString(piece, "type").includes("king")) {
+        return calculate_move_for_king(piece)
     } else {
         return []
     }
@@ -327,6 +329,31 @@ function select_piece (sprite: Sprite) {
             tiles.setTileAt(location, assets.tile`green_black_tile`)
         }
     }
+}
+function calculate_move_for_king (piece: Sprite) {
+    local_moves = []
+    for (let index = 0; index <= all_directions.length - 1; index++) {
+        local_curr_pos = tiles.locationInDirection(tiles.locationOfSprite(piece), all_directions[index])
+        if (location_within_board([local_curr_pos])) {
+            if (grid.getSprites(local_curr_pos).length == 0) {
+                local_moves.push(local_curr_pos)
+            } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
+                local_moves.push(local_curr_pos)
+            }
+        }
+    }
+    for (let index = 0; index <= all_directions.length - 1; index++) {
+        local_curr_pos = tiles.locationInDirection(tiles.locationOfSprite(piece), all_directions[index])
+        local_curr_pos = tiles.locationInDirection(local_curr_pos, all_directions[(index + 1) % all_directions.length])
+        if (location_within_board([local_curr_pos])) {
+            if (grid.getSprites(local_curr_pos).length == 0) {
+                local_moves.push(local_curr_pos)
+            } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
+                local_moves.push(local_curr_pos)
+            }
+        }
+    }
+    return local_moves
 }
 function enable_controls (enable: boolean) {
     controls_enabled = enable
