@@ -17,6 +17,7 @@ function knight_can_move_there (piece: Sprite, col_change: number, row_change: n
 function set_variables () {
     controls_enabled = true
     sprite_selected = null
+    current_player = false
     in_game = false
     all_directions = [
     CollisionDirection.Left,
@@ -101,6 +102,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
                         }
                     }
                     unselect_piece()
+                    current_player = !(current_player)
                     if (is_sprite(sprite_move_count)) {
                         sprite_move_count.destroy()
                     }
@@ -109,17 +111,21 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
                 }
             } else {
                 if (is_sprite(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))) {
-                    select_piece(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))
-                    if (is_sprite(sprite_move_count)) {
-                        sprite_move_count.destroy()
-                    }
-                    if (available_moves.length == 0) {
-                        sprite_move_count = textsprite.create("Moves found: 0", 0, 2)
+                    if (current_player != sprites.readDataBoolean(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece), "is_white")) {
+                        select_piece(get_overlapping_sprite(sprite_cursor_pointer, SpriteKind.Piece))
+                        if (is_sprite(sprite_move_count)) {
+                            sprite_move_count.destroy()
+                        }
+                        if (available_moves.length == 0) {
+                            sprite_move_count = textsprite.create("Moves found: 0", 0, 2)
+                        } else {
+                            sprite_move_count = textsprite.create("Moves found: " + available_moves.length, 0, 15)
+                        }
+                        sprite_move_count.left = 2 * tiles.tileWidth()
+                        sprite_move_count.top = 11.5 * tiles.tileWidth()
                     } else {
-                        sprite_move_count = textsprite.create("Moves found: " + available_moves.length, 0, 15)
+                        scene.cameraShake(4, 200)
                     }
-                    sprite_move_count.left = 2 * tiles.tileWidth()
-                    sprite_move_count.top = 11.5 * tiles.tileWidth()
                 }
             }
         }
@@ -529,6 +535,7 @@ let local_curr_pos: tiles.Location = null
 let local_moves: tiles.Location[] = []
 let sprite_move_count: TextSprite = null
 let all_directions: CollisionDirection[] = []
+let current_player = false
 let sprite_selected: Sprite = null
 let controls_enabled = false
 let in_game = false
