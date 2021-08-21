@@ -60,7 +60,7 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
         }
     }
 })
-function calculate_move_for_knight (piece: Sprite) {
+function calculate_move_for_knight (piece: Sprite, local_moves: any[]) {
     local_moves = []
     local_curr_pos = tiles.locationOfSprite(piece)
     for (let location of [
@@ -155,11 +155,11 @@ function promote_piece (piece: Sprite) {
         enable_controls(true)
     })
 }
-function location_within_board (location_in_list: any[]) {
-    if (tiles.locationXY(location_in_list[0], tiles.XY.column) > 9 || tiles.locationXY(location_in_list[0], tiles.XY.column) < 2) {
+function location_within_board (location_in_list2: any[]) {
+    if (tiles.locationXY(location_in_list2[0], tiles.XY.column) > 9 || tiles.locationXY(location_in_list2[0], tiles.XY.column) < 2) {
         return false
     }
-    if (tiles.locationXY(location_in_list[0], tiles.XY.row) > 9 || tiles.locationXY(location_in_list[0], tiles.XY.row) < 2) {
+    if (tiles.locationXY(location_in_list2[0], tiles.XY.row) > 9 || tiles.locationXY(location_in_list2[0], tiles.XY.row) < 2) {
         return false
     }
     return true
@@ -239,7 +239,7 @@ function make_cursor () {
     sprite_cursor_pointer.z = 10
     sprite_cursor_pointer.setFlag(SpriteFlag.Invisible, true)
 }
-function calculate_move_for_pawn (piece: Sprite) {
+function calculate_move_for_pawn (piece: Sprite, local_moves: any[]) {
     local_moves = []
     local_curr_pos = tiles.locationOfSprite(piece)
     if (sprites.readDataBoolean(piece, "is_white")) {
@@ -291,24 +291,24 @@ function calculate_move_for_pawn (piece: Sprite) {
     }
     return local_moves
 }
-function calculate_move (piece: Sprite) {
+function calculate_move (piece: Sprite): any {
     if (sprites.readDataString(piece, "type").includes("pawn")) {
-        return calculate_move_for_pawn(piece)
+        return calculate_move_for_pawn(piece, [])
     } else if (sprites.readDataString(piece, "type").includes("rook")) {
-        return calculate_move_for_rook(piece)
+        return calculate_move_for_rook(piece, [])
     } else if (sprites.readDataString(piece, "type").includes("knight")) {
-        return calculate_move_for_knight(piece)
+        return calculate_move_for_knight(piece, [])
     } else if (sprites.readDataString(piece, "type").includes("bishop")) {
-        return calculate_move_for_bishop(piece)
+        return calculate_move_for_bishop(piece, [])
     } else if (sprites.readDataString(piece, "type").includes("queen")) {
-        return calculate_move_for_queen(piece)
+        return calculate_move_for_queen(piece, [])
     } else if (sprites.readDataString(piece, "type").includes("king")) {
-        return calculate_move_for_king(piece)
+        return calculate_move_for_king(piece, true, [])
     } else {
         return []
     }
 }
-function calculate_move_for_rook (piece: Sprite) {
+function calculate_move_for_rook (piece: Sprite, local_moves: any[]) {
     local_moves = []
     for (let local_direction of all_directions) {
         local_curr_pos = tiles.locationOfSprite(piece)
@@ -328,7 +328,7 @@ function calculate_move_for_rook (piece: Sprite) {
     }
     return local_moves
 }
-function get_all_attacked_positions (white: boolean) {
+function get_all_attacked_positions (white: boolean): any {
     local_attacked_positions = []
     for (let sprite_piece of sprites.allOfKind(SpriteKind.Piece)) {
         if (sprites.readDataBoolean(sprite_piece, "is_white") != white) {
@@ -338,32 +338,31 @@ function get_all_attacked_positions (white: boolean) {
             if (sprites.readDataBoolean(sprite_piece, "is_white")) {
                 local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Top), CollisionDirection.Left)
                 if (location_within_board([local_curr_pos])) {
-                    if (grid.getSprites(local_curr_pos).length > 0 && !(sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white"))) {
-                        local_attacked_positions.push(local_curr_pos)
-                    }
+                    local_attacked_positions.push(local_curr_pos)
                 }
                 local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Top), CollisionDirection.Right)
                 if (location_within_board([local_curr_pos])) {
-                    if (grid.getSprites(local_curr_pos).length > 0 && !(sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white"))) {
-                        local_attacked_positions.push(local_curr_pos)
-                    }
+                    local_attacked_positions.push(local_curr_pos)
                 }
             } else {
                 local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Bottom), CollisionDirection.Left)
                 if (location_within_board([local_curr_pos])) {
-                    if (grid.getSprites(local_curr_pos).length > 0 && sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white")) {
-                        local_attacked_positions.push(local_curr_pos)
-                    }
+                    local_attacked_positions.push(local_curr_pos)
                 }
                 local_curr_pos = tiles.locationInDirection(tiles.locationInDirection(tiles.locationOfSprite(sprite_piece), CollisionDirection.Bottom), CollisionDirection.Right)
                 if (location_within_board([local_curr_pos])) {
-                    if (grid.getSprites(local_curr_pos).length > 0 && sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white")) {
-                        local_attacked_positions.push(local_curr_pos)
-                    }
+                    local_attacked_positions.push(local_curr_pos)
                 }
             }
+        } else if (sprites.readDataString(sprite_piece, "type").includes("king")) {
+            let list: number[] = []
+            local_attacked_locations = calculate_move_for_king(sprite_piece, false, list)
+            for (let location of local_attacked_locations) {
+                local_attacked_positions.push(location)
+            }
         } else {
-            for (let location of calculate_move(sprite_piece)) {
+            local_attacked_locations = calculate_move(sprite_piece)
+            for (let location of local_attacked_locations) {
                 local_attacked_positions.push(location)
             }
         }
@@ -381,11 +380,25 @@ function select_piece (sprite: Sprite) {
         }
     }
 }
-function calculate_move_for_king (piece: Sprite) {
+function calculate_move_for_king (piece: Sprite, check_attacked_locs: boolean, local_moves: any[]): any {
     local_moves = []
+    if (check_attacked_locs) {
+        attacked_locations = get_all_attacked_positions(!(sprites.readDataBoolean(piece, "is_white")))
+        if (false) {
+            for (let location of attacked_locations) {
+                if (tiles.tileAtLocationEquals(location, assets.tile`white_tile`)) {
+                    tiles.setTileAt(location, assets.tile`red_white_tile0`)
+                } else {
+                    tiles.setTileAt(location, assets.tile`red_black_tile`)
+                }
+            }
+        }
+    } else {
+        attacked_locations = []
+    }
     for (let index = 0; index <= all_directions.length - 1; index++) {
         local_curr_pos = tiles.locationInDirection(tiles.locationOfSprite(piece), all_directions[index])
-        if (location_within_board([local_curr_pos])) {
+        if (location_within_board([local_curr_pos]) && !(location_in_list([local_curr_pos], attacked_locations))) {
             if (grid.getSprites(local_curr_pos).length == 0) {
                 local_moves.push(local_curr_pos)
             } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
@@ -396,7 +409,7 @@ function calculate_move_for_king (piece: Sprite) {
     for (let index = 0; index <= all_directions.length - 1; index++) {
         local_curr_pos = tiles.locationInDirection(tiles.locationOfSprite(piece), all_directions[index])
         local_curr_pos = tiles.locationInDirection(local_curr_pos, all_directions[(index + 1) % all_directions.length])
-        if (location_within_board([local_curr_pos])) {
+        if (location_within_board([local_curr_pos]) && !(location_in_list([local_curr_pos], attacked_locations))) {
             if (grid.getSprites(local_curr_pos).length == 0) {
                 local_moves.push(local_curr_pos)
             } else if (sprites.readDataBoolean(grid.getSprites(local_curr_pos)[0], "is_white") != sprites.readDataBoolean(piece, "is_white")) {
@@ -421,7 +434,7 @@ function unselect_piece () {
     sprite_selected = null
     set_tilemap(false)
 }
-function calculate_move_for_queen (piece: Sprite) {
+function calculate_move_for_queen (piece: Sprite, local_moves: any[]) {
     local_moves = []
     for (let index = 0; index <= all_directions.length - 1; index++) {
         local_curr_pos = tiles.locationOfSprite(piece)
@@ -468,11 +481,19 @@ function make_piece (_type: string, location_as_list: any[]) {
     sprites.setDataBoolean(sprite_piece, "in_check", false)
     return sprite_piece
 }
+function location_in_list (location1_in_list: any[], location_list: any[]) {
+    for (let location of location_list) {
+        if (locations_are_equal(location1_in_list, [location])) {
+            return true
+        }
+    }
+    return false
+}
 function is_sprite (sprite: Sprite) {
     sprite = sprite
     return sprite && !(spriteutils.isDestroyed(sprite))
 }
-function calculate_move_for_bishop (piece: Sprite) {
+function calculate_move_for_bishop (piece: Sprite, local_moves: any[]) {
     local_moves = []
     for (let index = 0; index <= all_directions.length - 1; index++) {
         local_curr_pos = tiles.locationOfSprite(piece)
@@ -494,6 +515,8 @@ function calculate_move_for_bishop (piece: Sprite) {
     return local_moves
 }
 let sprite: Sprite = null
+let attacked_locations: tiles.Location[] = []
+let local_attacked_locations: tiles.Location[] = []
 let local_attacked_positions: tiles.Location[] = []
 let sprite_cursor: Sprite = null
 let chess_names: string[] = []

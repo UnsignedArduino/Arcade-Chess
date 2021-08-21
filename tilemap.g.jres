@@ -201,6 +201,18 @@
         "tilemapTile": true,
         "displayName": "green_black_tile"
     },
+    "tile33": {
+        "data": "hwQIAAgAAAC7u7u7KyIisisiIrIrIiKyKyIisisiIrIrIiKyu7u7uw==",
+        "mimeType": "image/x-mkcd-f4",
+        "tilemapTile": true,
+        "displayName": "red_white_tile0"
+    },
+    "tile34": {
+        "data": "hwQIAAgAAADMzMzMLCIiwiwiIsIsIiLCLCIiwiwiIsIsIiLCzMzMzA==",
+        "mimeType": "image/x-mkcd-f4",
+        "tilemapTile": true,
+        "displayName": "red_black_tile"
+    },
     "level2": {
         "id": "level2",
         "mimeType": "application/mkcd-tilemap",
@@ -264,8 +276,9 @@
             "myTiles.tile16",
             "myTiles.tile17",
             "myTiles.tile18",
-            "myTiles.tile31",
-            "myTiles.tile32"
+            "myTiles.tile33",
+            "myTiles.tile32",
+            "myTiles.tile34"
         ],
         "displayName": "board"
     },
